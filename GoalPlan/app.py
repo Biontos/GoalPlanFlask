@@ -22,7 +22,7 @@ def replace_youtube_links(text):
 app.jinja_env.filters['replace_youtube_links'] = replace_youtube_links
 
 app.config['SECRET_KEY'] = 'mysecretkey'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1234@localhost/trello_clone'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql://root:1234@localhost/trello_clone')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -477,6 +477,7 @@ def update_card_date():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
 
 

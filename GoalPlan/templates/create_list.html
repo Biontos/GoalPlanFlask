@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание списка</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='create_card.css') }}">
+    <script src="{{ url_for('static', filename='js/dark-mode.js') }}"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">Создание списка</h2>
+
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="name">Название списка</label>
+                {{ form.name(class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                <label for="position">Позиция</label>
+                {{ form.position(class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Создать список</button>
+            </div>
+        </form>
+
+        <div class="card-buttons">
+            <a href="javascript:history.back()" class="btn btn-secondary">Назад</a>
+        </div>
+
+    </div>
+</body>
+<script src="{{ url_for('static', filename='js/dark-mode.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleButton = document.getElementById("dark-mode-toggle");
+
+        if (typeof(Storage) !== "undefined") {
+            const isDarkMode = localStorage.getItem("dark-mode") === "enabled";
+
+            if (isDarkMode) {
+                document.body.classList.add("dark-mode");
+                toggleButton.textContent = "Светлая тема";
+            }
+
+            toggleButton.addEventListener("click", function () {
+                document.body.classList.toggle("dark-mode");
+
+                if (document.body.classList.contains("dark-mode")) {
+                    localStorage.setItem("dark-mode", "enabled");
+                    toggleButton.textContent = "Светлая тема";
+                } else {
+                    localStorage.setItem("dark-mode", "disabled");
+                    toggleButton.textContent = "Темная тема";
+                }
+            });
+        }
+    });
+</script>
+</html>
+{% include 'footer.html' %}

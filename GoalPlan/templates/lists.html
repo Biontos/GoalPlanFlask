@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Листы доски: {{ board.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+    <h1>Листы: {{ board.name }}</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+            <label for="name">Название листа:</label>
+            {{ form.name() }}
+        </div>
+        <div>
+            <label for="description">Описание:</label>
+            {{ form.description() }}
+        </div>
+        <div>
+            <button type="submit">Добавить лист</button>
+        </div>
+    </form>
+    <ul>
+        {% for list_item in lists %}
+            <li>
+                <strong>{{ list_item.name }}</strong>: {{ list_item.description }}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+<script src="{{ url_for('static', filename='js/dark-mode.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleButton = document.getElementById("dark-mode-toggle");
+
+        if (typeof(Storage) !== "undefined") {
+            const isDarkMode = localStorage.getItem("dark-mode") === "enabled";
+
+            if (isDarkMode) {
+                document.body.classList.add("dark-mode");
+                toggleButton.textContent = "Светлая тема";
+            }
+
+            toggleButton.addEventListener("click", function () {
+                document.body.classList.toggle("dark-mode");
+
+                if (document.body.classList.contains("dark-mode")) {
+                    localStorage.setItem("dark-mode", "enabled");
+                    toggleButton.textContent = "Светлая тема";
+                } else {
+                    localStorage.setItem("dark-mode", "disabled");
+                    toggleButton.textContent = "Темная тема";
+                }
+            });
+        }
+    });
+</script>
+</html>
+{% include 'footer.html' %}

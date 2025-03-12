@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карточка: {{ card.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='board.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='comments.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='checklist.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/dark-mode.js') }}"></script>
+</head>
+<body>
+
+<div class="container mt-5">
+    <a href="{{ url_for('board', board_id=card.list.board_id) }}" class="btn btn-secondary mb-3">Назад</a>
+    <h2 class="mb-4 {{ card.due_class }}">{{ card.title }}</h2>
+
+    <h4>Чек-лист:</h4>
+    <form method="POST" action="{{ url_for('add_checklist_item', card_id=card.id) }}">
+        {{ form.hidden_tag() }}
+        <input type="text" name="text" class="form-control" placeholder="Добавить пункт" required>
+        <button type="submit" class="btn btn-primary mt-2">Добавить</button>
+    </form>
+
+    <ul class="list-group mt-3">
+        {% for item in card.checklist_items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <form method="POST" action="{{ url_for('toggle_checklist_item', item_id=item.id) }}">
+                <button type="submit" class="btn btn-sm {% if item.completed %}btn-success{% else %}btn-secondary{% endif %}">
+                    {{ '✓' if item.completed else '✗' }}
+                </button>
+            </form>
+            <span class="{% if item.completed %}text-decoration-line-through{% endif %}">{{ item.text }}</span>
+            <form method="POST" action="{{ url_for('delete_checklist_item', item_id=item.id) }}">
+                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h4 class="mt-4">Комментарии:</h4>
+    <div class="list-group" id="chat_box">
+        {% for comment in comments %}
+        <div class="list-group-item comment-item">
+            <strong>{{ comment.user.name }}:</strong>
+            <p>{{ comment.content | replace_youtube_links }}</p>
+
+            {% if comment.attachment %}
+            <div class="attachment-preview mt-2">
+                {% if comment.attachment.endswith('.jpg') or comment.attachment.endswith('.png') or comment.attachment.endswith('.jpeg') or comment.attachment.endswith('.gif') %}
+                    <a href="{{ url_for('uploaded_file', filename=comment.attachment) }}" target="_blank">
+                        <img src="{{ url_for('uploaded_file', filename=comment.attachment) }}" width="400" height="400" alt="Вложение" class="img-thumbnail">
+                    </a>
+                {% elif comment.attachment.endswith('.mp4') or comment.attachment.endswith('.webm') or comment.attachment.endswith('.ogg') %}
+                    <video width="400" controls>
+                        <source src="{{ url_for('uploaded_file', filename=comment.attachment) }}" type="video/mp4">
+                        Ваш браузер не поддерживает видео.
+                    </video>
+                {% elif comment.attachment.endswith('.mp3') or comment.attachment.endswith('.wav') or comment.attachment.endswith('.ogg') %}
+                    <audio controls>
+                        <source src="{{ url_for('uploaded_file', filename=comment.attachment) }}" type="audio/mpeg">
+                        Ваш браузер не поддерживает аудиофайлы.
+                    </audio>
+                {% elif comment.attachment.endswith('.pdf') %}
+                    <iframe src="{{ url_for('uploaded_file', filename=comment.attachment) }}" width="50%" height="300px"></iframe>
+                {% elif comment.attachment.endswith('.docx') or comment.attachment.endswith('.txt') %}
+                    <a href="https://docs.google.com/viewer?url={{ url_for('uploaded_file', filename=comment.attachment, _external=True) }}" target="_blank">
+                        📄 Открыть документ
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('uploaded_file', filename=comment.attachment) }}" download>
+                        📎 {{ comment.attachment.split('/')[-1] }}
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <small class="text-muted">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+            <form method="POST" action="{{ url_for('delete_comment', comment_id=comment.id) }}">
+                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h5 class="mt-4">Добавить комментарий:</h5>
+    <form id="comment_form" method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.content(class="form-control", rows=3, id="message_input") }}
+        </div>
+        <div class="mb-3">
+            {{ form.file(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary" id="send_message">Добавить комментарий</button>
+    </form>
+
+    <a href="{{ url_for('create_card', list_id=card.list.id) }}" class="btn btn-success mt-4">Создать карточку</a>
+    <a href="{{ url_for('board', board_id=card.list.board_id) }}" class="btn btn-secondary mt-4">Назад</a>
+</div>
+<script src="{{ url_for('static', filename='js/dark-mode.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleButton = document.getElementById("dark-mode-toggle");
+
+        if (typeof(Storage) !== "undefined") {
+            const isDarkMode = localStorage.getItem("dark-mode") === "enabled";
+
+            if (isDarkMode) {
+                document.body.classList.add("dark-mode");
+                toggleButton.textContent = "Светлая тема";
+            }
+
+            toggleButton.addEventListener("click", function () {
+                document.body.classList.toggle("dark-mode");
+
+                if (document.body.classList.contains("dark-mode")) {
+                    localStorage.setItem("dark-mode", "enabled");
+                    toggleButton.textContent = "Светлая тема";
+                } else {
+                    localStorage.setItem("dark-mode", "disabled");
+                    toggleButton.textContent = "Темная тема";
+                }
+            });
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+</body>
+</html>
+{% include 'footer.html' %}

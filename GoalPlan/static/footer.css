@@ -1,0 +1,32 @@
+footer {
+    background-color: #222;
+    color: #fff;
+    text-align: center;
+    padding: 15px;
+    width: 100%;
+}
+
+.footer-content nav a {
+    color: #bbb;
+    margin: 0 10px;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.footer-content nav a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.creator-button {
+    background-color: #0088cc;
+    color: white !important;
+    padding: 5px 15px;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+
+.creator-button:hover {
+    background-color: #006699;
+}

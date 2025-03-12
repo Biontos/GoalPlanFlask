@@ -1,0 +1,118 @@
+@import url('style.css');
+
+
+body {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+body.dark-mode {
+    background: rgba(30, 30, 30, 0.9);
+    color: white;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(15px);
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease;
+}
+
+body.dark-mode .container {
+    background: rgba(50, 50, 50, 0.9);
+}
+
+h2 {
+    color: #4A90E2;
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+body.dark-mode .card {
+    background: rgba(70, 70, 70, 0.9);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    background: rgba(76, 175, 80, 0.8);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px 8px 0 0;
+    transition: background 0.3s ease;
+}
+
+body.dark-mode .card-header {
+    background: rgba(100, 100, 100, 0.8);
+}
+
+.list-group-item {
+    background: none;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.list-group-item a {
+    color: #4CAF50;
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.list-group-item a:hover {
+    color: #388E3C;
+}
+
+body.dark-mode .list-group-item a {
+    color: #81C784;
+}
+
+.btn {
+    background: rgba(0, 188, 212, 0.8);
+    color: white;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    transition: background 0.3s ease;
+}
+
+.btn:hover {
+    background: rgba(0, 151, 167, 0.9);
+}
+
+.dark-mode-toggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #4A90E2;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.dark-mode-toggle:hover {
+    background: #357ABD;
+}

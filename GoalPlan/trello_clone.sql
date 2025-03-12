@@ -1,0 +1,1 @@
+SELECT * FROM trello_clone.lists;

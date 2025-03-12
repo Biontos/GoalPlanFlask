@@ -1,0 +1,17 @@
+.checklist-container {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+}
+
+.checklist-container input {
+    width: calc(100% - 120px);
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.checklist-container button {
+    display: inline-block;
+}

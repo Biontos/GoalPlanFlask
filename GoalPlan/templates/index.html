@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.5">
+    <title>Главная страница</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='calendar.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/locales/ru.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<header>
+    <h1>GoalPlan</h1>
+</header>
+
+<div class="content">
+    {% if current_user.is_authenticated %}
+        <div class="user-profile">
+            <h2>Профиль пользователя</h2>
+            <p><strong>Имя:</strong> {{ current_user.name }}</p>
+            <p><strong>Email:</strong> {{ current_user.email }}</p>
+            <form action="{{ url_for('logout') }}" method="POST">
+                <button type="submit" class="button logout-button">Выйти</button>
+            </form>
+        </div>
+
+        <a href="{{ url_for('create_board') }}" class="button create-board-button">Создать новую доску</a>
+
+    {% else %}
+        <a href="{{ url_for('login') }}" class="button">Войти</a>
+        <a href="{{ url_for('register') }}" class="button">Зарегистрироваться</a>
+    {% endif %}
+
+    <h2>Доски</h2>
+    <div class="board-list">
+        {% for board in boards %}
+            <div class="board-container">
+                <a href="{{ url_for('board', board_id=board.id) }}" class="board-name">{{ board.name }}</a>
+                <form action="{{ url_for('delete_board', board_id=board.id) }}" method="POST" class="delete-board-form">
+                    <button type="submit" class="delete-button">🗑</button>
+                </form>
+            </div>
+        {% else %}
+            <p>У вас нет досок. Создайте одну!</p>
+        {% endfor %}
+    </div>
+
+    <h2>Календарь дедлайнов</h2>
+    <div id="calendar"></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'ru',
+            initialView: 'dayGridMonth',
+            events: [
+                {% for board in boards %}
+                    {% for list in board.lists %}
+                        {% for card in list.cards %}
+                            {% if card.due_date %}
+                                {
+                                    title: "{{ card.title }}",
+                                    start: "{{ card.due_date.strftime('%Y-%m-%dT%H:%M:%S') }}",
+                                    description: "{{ card.description }}",
+                                    url: "{{ url_for('card', card_id=card.id) }}",
+                                    id: "{{ card.id }}"
+                                },
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                {% endfor %}
+            ],
+            eventClick: function(info) {
+                Swal.fire({
+                    title: 'Вы уверены?',
+                    text: "Вы хотите перейти к карточке?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Да, перейти!',
+                    cancelButtonText: 'Отмена'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = info.event.url;
+                    }
+                });
+            },
+            editable: true,
+            droppable: true,
+            eventColor: '#378006',
+            eventDrop: function(info) {
+                var event = info.event;
+                var cardId = event.id;
+                var newDate = event.startStr;
+
+                fetch('/update_card_date', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        card_id: cardId,
+                        new_date: newDate
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Toastify({
+                            text: "Дата карточки успешно обновлена!",
+                            backgroundColor: "green",
+                            duration: 3000
+                        }).showToast();
+                    } else {
+                        Toastify({
+                            text: "Ошибка при обновлении даты.",
+                            backgroundColor: "red",
+                            duration: 3000
+                        }).showToast();
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    Toastify({
+                        text: "Произошла ошибка.",
+                        backgroundColor: "red",
+                        duration: 3000
+                    }).showToast();
+                });
+            }
+        });
+
+        calendar.render();
+
+        document.querySelectorAll('.delete-board-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Вы уверены?',
+                    text: "Эта операция не может быть отменена!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Да, удалить!',
+                    cancelButtonText: 'Отмена'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+
+<script src="{{ url_for('static', filename='js/dark-mode.js') }}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleButton = document.getElementById("dark-mode-toggle");
+
+        if (typeof(Storage) !== "undefined") {
+            const isDarkMode = localStorage.getItem("dark-mode") === "enabled";
+
+            if (isDarkMode) {
+                document.body.classList.add("dark-mode");
+                document.documentElement.style.setProperty("--background-color", "#121212");
+                document.documentElement.style.setProperty("--text-color", "#ffffff");
+                toggleButton.textContent = "Светлая тема";
+            }
+
+            toggleButton.addEventListener("click", function () {
+                document.body.classList.toggle("dark-mode");
+
+                if (document.body.classList.contains("dark-mode")) {
+                    localStorage.setItem("dark-mode", "enabled");
+                    document.documentElement.style.setProperty("--background-color", "#121212");
+                    document.documentElement.style.setProperty("--text-color", "#ffffff");
+                    toggleButton.textContent = "Светлая тема";
+                } else {
+                    localStorage.setItem("dark-mode", "disabled");
+                    document.documentElement.style.setProperty("--background-color", "#ffffff");
+                    document.documentElement.style.setProperty("--text-color", "#000000");
+                    toggleButton.textContent = "Темная тема";
+                }
+            });
+        } else {
+            console.error("localStorage не поддерживается в этом браузере.");
+        }
+    });
+</script>
+
+{% include 'footer.html' %}

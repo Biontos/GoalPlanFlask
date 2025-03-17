@@ -112,7 +112,6 @@ body.dark-mode .list-group-item a {
     cursor: pointer;
     transition: background 0.3s ease;
 }
-
 .dark-mode-toggle:hover {
     background: #357ABD;
 }

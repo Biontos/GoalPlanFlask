@@ -19,75 +19,85 @@ def replace_youtube_links(text):
     youtube_regex = r"(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)([\w-]+))"
     return re.sub(youtube_regex, r'<iframe width="560" height="310" src="https://www.youtube.com/embed/\2" frameborder="0" allowfullscreen></iframe>', text)
 
-app.jinja_env.filters['replace_youtube_links'] = replace_youtube_links
-
-app.config['SECRET_KEY'] = 'mysecretkey'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql://root:1234@localhost/trello_clone')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = True
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'txt'}
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-login_manager.login_view = 'login'
-
+db = SQLAlchemy()
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     boards = db.relationship('Board', backref='owner', lazy=True)
 
 board_users = db.Table('board_users',
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
-    db.Column('board_id', db.Integer, db.ForeignKey('boards.id'), primary_key=True)
+    db.Column('user_id', db.BigInteger, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('board_id', db.BigInteger, db.ForeignKey('boards.id'), primary_key=True)
 )
 
 class Board(db.Model):
     __tablename__ = 'boards'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.BigInteger, db.ForeignKey('users.id'), nullable=False)
     lists = db.relationship('List', backref='board', lazy=True)
     users = db.relationship('User', secondary=board_users, backref=db.backref('shared_boards', lazy='dynamic'))
 
 class List(db.Model):
     __tablename__ = 'lists'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    board_id = db.Column(db.Integer, db.ForeignKey('boards.id'), nullable=False)
+    board_id = db.Column(db.BigInteger, db.ForeignKey('boards.id'), nullable=False)
     position = db.Column(db.Integer, default=0)
     cards = db.relationship('Card', backref='list', lazy=True)
 
-
 class Card(db.Model):
     __tablename__ = 'cards'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.BigInteger, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    list_id = db.Column(db.Integer, db.ForeignKey('lists.id'), nullable=False)
+    description = db.Column(db.String(5000), nullable=True) 
+    list_id = db.Column(db.BigInteger, db.ForeignKey('lists.id'), nullable=False)
     due_date = db.Column(db.DateTime, nullable=True)
     position = db.Column(db.Integer, default=0)
     completed = db.Column(db.Boolean, default=False)
 
 class Comment(db.Model):
     __tablename__ = 'comments'
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
+    id = db.Column(db.BigInteger, primary_key=True)
+    content = db.Column(db.String(5000), nullable=False)  # db.Text заменен
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    card_id = db.Column(db.Integer, db.ForeignKey('cards.id', ondelete="CASCADE"), nullable=False)
+    user_id = db.Column(db.BigInteger, db.ForeignKey('users.id'), nullable=False)
+    card_id = db.Column(db.BigInteger, db.ForeignKey('cards.id', ondelete="CASCADE"), nullable=False)
     attachment = db.Column(db.String(255), nullable=True)
 
     user = db.relationship('User', backref='comments')
     card = db.relationship('Card', backref=db.backref('comments', cascade="all, delete", passive_deletes=True))
+
+class ChecklistItem(db.Model):
+    __tablename__ = 'checklist_items'
+    id = db.Column(db.BigInteger, primary_key=True)
+    text = db.Column(db.String(255), nullable=False)
+    completed = db.Column(db.Boolean, default=False)
+    card_id = db.Column(db.BigInteger, db.ForeignKey('cards.id'), nullable=False)
+
+    card = db.relationship('Card', backref=db.backref('checklist_items', lazy=True))
+
+class ChecklistItemForm(FlaskForm):
+    text = StringField('Название пункта', validators=[DataRequired()])
+    submit = SubmitField('Добавить пункт')
+
+class CommentForm(FlaskForm):
+    content = TextAreaField('Комментарий', validators=[DataRequired()])
+    file = FileField('Прикрепить файл')
+    submit = SubmitField('Добавить комментарий')
+
+    def save_attachment(self, file):
+        if file:
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            return filename
+        return None
 
 
 class ChecklistItem(db.Model):

@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 def replace_youtube_links(text):
     youtube_regex = r"(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)([\w-]+))"
-    return re.sub(youtube_regex, r'<iframe width="560" height="315" src="https://www.youtube.com/embed/\2" frameborder="0" allowfullscreen></iframe>', text)
+    return re.sub(youtube_regex, r'<iframe width="560" height="310" src="https://www.youtube.com/embed/\2" frameborder="0" allowfullscreen></iframe>', text)
 
 app.jinja_env.filters['replace_youtube_links'] = replace_youtube_links
 

@@ -21,8 +21,9 @@ def replace_youtube_links(text):
 
 app.jinja_env.filters['replace_youtube_links'] = replace_youtube_links
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 
-    'mysql://if0_38549662:SA15102006sa@sql210.infinityfree.com:3306/if0_38549662_goalplan')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+    'DATABASE_URL',
+    'mysql://sql7768667:jcZ7X5WcwU@sql7.freesqldatabase.com:3306/sql7768667')
 
 
 app.config['SECRET_KEY'] = 'mysecretkey'

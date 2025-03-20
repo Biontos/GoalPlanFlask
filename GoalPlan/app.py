@@ -373,9 +373,11 @@ def complete_card(card_id):
 @app.route('/list/delete/<int:list_id>', methods=['POST'])
 @login_required
 def delete_list(list_id):
-    list_ = List.query.get_or_404(list_id)
-    board_id = list_.board_id
+    list_ = List.query.filter_by(id=list_id).first()
+    if not list_:
+        abort(404)
 
+    board_id = list_.board_id
     Card.query.filter_by(list_id=list_.id).delete()
 
     db.session.delete(list_)
@@ -388,7 +390,10 @@ def delete_list(list_id):
 @app.route('/card/delete/<int:card_id>', methods=['POST'])
 @login_required
 def delete_card(card_id):
-    card = Card.query.get_or_404(card_id)
+    card = Card.query.filter_by(id=card_id).first()
+    if not card:
+        abort(404)
+
     board_id = card.list.board_id
 
     ChecklistItem.query.filter_by(card_id=card.id).delete()

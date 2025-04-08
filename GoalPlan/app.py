@@ -23,7 +23,7 @@ app.jinja_env.filters['replace_youtube_links'] = replace_youtube_links
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
     'DATABASE_URL',
-    'mysql://sql7770578:XsZq8p6Xez@sql7.freesqldatabase.com:3306/sql7770578')
+    mysql://root:LUsRmrdglQcOzupRiRTsYErhBVXIJHEV@mysql.railway.internal:3306/railway)
 
 
 app.config['SECRET_KEY'] = 'mysecretkey'
